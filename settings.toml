@@ -1,0 +1,9 @@
+[rpc]
+url = "https://gateway.tenderly.co/public/polygon"
+
+[wallet]
+address = "0x46b353667fd7d846af3bbeda6584b0e5b883d3de"
+
+[contracts]
+usdc_e = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+ctf = "0x4D97DCd97eC945f40cF65F87097ACe5EA0476045"

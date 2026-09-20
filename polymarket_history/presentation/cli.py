@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import json
+from typing import Any
+
 import typer
 from polymarket_history.application.get_erc20_balance import GetErc20Balance
+from polymarket_history.application.get_wallet_usdc_history import GetWalletUsdcHistory
+from polymarket_history.domain.models.erc20_transfer import Erc20Transfer
 from polymarket_history.domain.value_objects.address import Address
 from polymarket_history.domain.value_objects.block import LATEST, BlockNumber
 from polymarket_history.presentation.usdc_displayer import UsdcDisplayer
@@ -9,14 +14,19 @@ from polymarket_history.presentation.usdc_displayer import UsdcDisplayer
 
 def build_cli(
     get_erc20_balance: GetErc20Balance,
+    get_wallet_usdc_history: GetWalletUsdcHistory,
     usdc_displayer: UsdcDisplayer,
     *,
     default_wallet: str,
     default_token: str,
 ) -> typer.Typer:
-    app = typer.Typer(add_completion=False, no_args_is_help=False)
+    app = typer.Typer(add_completion=False, no_args_is_help=True)
 
-    @app.callback(invoke_without_command=True)
+    @app.callback()
+    def _root() -> None:
+        pass
+
+    @app.command("balance")
     def balance(
         wallet: str = typer.Option(default_wallet, "--wallet"),
         token: str = typer.Option(default_token, "--token"),
@@ -32,4 +42,41 @@ def build_cli(
         if formatted is not None:
             typer.echo(f"balance_usdc={formatted}")
 
+    @app.command("history")
+    def history(
+        from_block: int = typer.Option(..., "--from-block"),
+        to_block: int = typer.Option(..., "--to-block"),
+        wallet: str = typer.Option(default_wallet, "--wallet"),
+        token: str = typer.Option(default_token, "--token"),
+        batch_size: int = typer.Option(1000, "--batch-size"),
+    ) -> None:
+        transfers = get_wallet_usdc_history(
+            Address(wallet),
+            Address(token),
+            BlockNumber(from_block),
+            BlockNumber(to_block),
+            batch_size,
+        )
+        payload = [_serialize_transfer(item, usdc_displayer) for item in transfers]
+        typer.echo(json.dumps(payload, ensure_ascii=False))
+
     return app
+
+
+def _serialize_transfer(
+    transfer: Erc20Transfer,
+    usdc_displayer: UsdcDisplayer,
+) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "token": str(transfer.token),
+        "block": transfer.block.value,
+        "transaction_hash": transfer.transaction_hash,
+        "log_index": transfer.log_index,
+        "from": str(transfer.sender),
+        "to": str(transfer.recipient),
+        "amount": transfer.amount,
+    }
+    formatted = usdc_displayer.format(transfer.token, transfer.amount)
+    if formatted is not None:
+        row["amount_usdc"] = formatted
+    return row

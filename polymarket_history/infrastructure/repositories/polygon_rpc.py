@@ -12,7 +12,7 @@ from polymarket_history.domain.value_objects.block import (
     LatestBlock,
 )
 from polymarket_history.domain.value_objects.topic import Topic
-from polymarket_history.infrastructure.json_rpc import JsonRpcClient
+from polymarket_history.infrastructure.helpers.json_rpc import JsonRpcClient
 from polymarket_history.infrastructure.settings import RpcSettings
 
 _ERC20_BALANCE_OF = "0x70a08231"

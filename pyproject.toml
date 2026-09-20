@@ -5,7 +5,10 @@ authors = [
     {name = "andreyfesunov", email = "fsnv04@gmail.com"}
 ]
 requires-python = ">=3.11,<4.0"
-dependencies = []
+dependencies = [
+    "typer (>=0.19.0,<1.0.0)",
+]
+scripts = { polymarket-history = "polymarket_history.main:main" }
 
 [tool.poetry]
 version = "0.0.0"

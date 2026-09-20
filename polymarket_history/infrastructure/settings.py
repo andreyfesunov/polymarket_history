@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import tomllib
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 
 
@@ -17,6 +16,9 @@ def find_settings_toml(name: str = "settings.toml") -> Path:
 @dataclass(frozen=True, slots=True)
 class RpcSettings:
     url: str
+    timeout: float = 30.0
+    max_retries: int = 5
+    retry_backoff: float = 1.5
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,15 +48,15 @@ class Settings:
         wallet = data["wallet"]
         contracts = data["contracts"]
         return cls(
-            rpc=RpcSettings(url=rpc["url"]),
+            rpc=RpcSettings(
+                url=rpc["url"],
+                timeout=float(rpc.get("timeout", 30.0)),
+                max_retries=int(rpc.get("max_retries", 5)),
+                retry_backoff=float(rpc.get("retry_backoff", 1.5)),
+            ),
             wallet=WalletSettings(address=wallet["address"]),
             contracts=ContractSettings(
                 usdc_e=contracts["usdc_e"],
                 ctf=contracts["ctf"],
             ),
         )
-
-
-@lru_cache(maxsize=1)
-def get_settings(path: str | None = None) -> Settings:
-    return Settings.from_toml(path)

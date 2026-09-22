@@ -8,10 +8,18 @@ requires-python = ">=3.11,<4.0"
 dependencies = [
     "typer (>=0.19.0,<1.0.0)",
     "pycryptodome (>=3.23.0,<4.0.0)",
+    "psycopg[binary] (>=3.2.0,<4.0.0)",
 ]
-scripts = { polymarket-history = "polymarket_history.main:main" }
+
+[project.scripts]
+polymarket-history = "polymarket_history.main:main"
+polymarket-history-init = "polymarket_history_initializer.migrate:main"
 
 [tool.poetry]
+packages = [
+    { include = "polymarket_history" },
+    { include = "polymarket_history_initializer" },
+]
 version = "0.0.0"
 
 [tool.poetry-dynamic-versioning]
@@ -35,7 +43,7 @@ dev = [
 [tool.ruff]
 target-version = "py311"
 line-length = 88
-src = ["polymarket_history"]
+src = ["polymarket_history", "polymarket_history_initializer"]
 
 [tool.ruff.lint]
 select = [
@@ -55,6 +63,6 @@ quote-style = "double"
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["polymarket_history"]
+files = ["polymarket_history", "polymarket_history_initializer"]
 explicit_package_bases = true
 warn_unreachable = true

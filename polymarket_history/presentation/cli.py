@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from typing import Any
 
 import typer
@@ -8,21 +9,28 @@ from polymarket_history.application.check_erc20_window import CheckErc20Window
 from polymarket_history.application.check_erc1155_window import CheckErc1155Window
 from polymarket_history.application.get_erc20_balance import GetErc20Balance
 from polymarket_history.application.get_erc1155_balance import GetErc1155Balance
-from polymarket_history.application.get_wallet_ctf_history import GetWalletCtfHistory
-from polymarket_history.application.get_wallet_usdc_history import GetWalletUsdcHistory
 from polymarket_history.domain.models.erc20_transfer import Erc20Transfer
 from polymarket_history.domain.models.erc1155_transfer import Erc1155Transfer
 from polymarket_history.domain.value_objects.address import Address
 from polymarket_history.domain.value_objects.block import LATEST, BlockNumber
 from polymarket_history.presentation.usdc_displayer import UsdcDisplayer
 
+WalletUsdcHistoryFn = Callable[
+    [Address, Address, BlockNumber, BlockNumber, int],
+    list[Erc20Transfer],
+]
+WalletCtfHistoryFn = Callable[
+    [Address, Address, BlockNumber, BlockNumber, int],
+    list[Erc1155Transfer],
+]
+
 
 def build_cli(
     get_erc20_balance: GetErc20Balance,
-    get_wallet_usdc_history: GetWalletUsdcHistory,
+    get_wallet_usdc_history: WalletUsdcHistoryFn,
     check_erc20_window: CheckErc20Window,
     get_erc1155_balance: GetErc1155Balance,
-    get_wallet_ctf_history: GetWalletCtfHistory,
+    get_wallet_ctf_history: WalletCtfHistoryFn,
     check_erc1155_window: CheckErc1155Window,
     usdc_displayer: UsdcDisplayer,
     *,

@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
-from polymarket_history.application.get_wallet_ctf_history import GetWalletCtfHistory
+from polymarket_history.domain.models.erc1155_transfer import Erc1155Transfer
 from polymarket_history.domain.repositories.polygon import PolygonRepository
 from polymarket_history.domain.value_objects.address import Address
 from polymarket_history.domain.value_objects.block import BlockNumber
+
+WalletCtfHistoryFn = Callable[
+    [Address, Address, BlockNumber, BlockNumber, int],
+    list[Erc1155Transfer],
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,7 +49,7 @@ class CheckErc1155Window:
     def __init__(
         self,
         polygon: PolygonRepository,
-        get_wallet_ctf_history: GetWalletCtfHistory,
+        get_wallet_ctf_history: WalletCtfHistoryFn,
     ) -> None:
         self._polygon = polygon
         self._get_wallet_ctf_history = get_wallet_ctf_history

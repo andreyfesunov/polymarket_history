@@ -33,10 +33,16 @@ class ContractSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class DatabaseSettings:
+    dsn: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class Settings:
     rpc: RpcSettings
     wallet: WalletSettings
     contracts: ContractSettings
+    database: DatabaseSettings
 
     @classmethod
     def from_toml(cls, path: Path | str | None = None) -> Settings:
@@ -47,6 +53,7 @@ class Settings:
         rpc = data["rpc"]
         wallet = data["wallet"]
         contracts = data["contracts"]
+        database = data.get("database", {})
         return cls(
             rpc=RpcSettings(
                 url=rpc["url"],
@@ -59,4 +66,5 @@ class Settings:
                 usdc_e=contracts["usdc_e"],
                 ctf=contracts["ctf"],
             ),
+            database=DatabaseSettings(dsn=str(database.get("dsn", ""))),
         )

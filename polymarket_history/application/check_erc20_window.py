@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from polymarket_history.application.get_erc20_balance import GetErc20Balance
-from polymarket_history.application.get_wallet_usdc_history import GetWalletUsdcHistory
+from polymarket_history.domain.models.erc20_transfer import Erc20Transfer
 from polymarket_history.domain.value_objects.address import Address
 from polymarket_history.domain.value_objects.block import BlockNumber
+
+WalletUsdcHistoryFn = Callable[
+    [Address, Address, BlockNumber, BlockNumber, int],
+    list[Erc20Transfer],
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,7 +38,7 @@ class CheckErc20Window:
     def __init__(
         self,
         get_erc20_balance: GetErc20Balance,
-        get_wallet_usdc_history: GetWalletUsdcHistory,
+        get_wallet_usdc_history: WalletUsdcHistoryFn,
     ) -> None:
         self._get_erc20_balance = get_erc20_balance
         self._get_wallet_usdc_history = get_wallet_usdc_history

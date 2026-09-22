@@ -10,6 +10,10 @@ Polymarket wallet history via Polygon RPC (no Polymarket API).
 poetry run polymarket-history balance
 poetry run polymarket-history history --from-block 91000000 --to-block 91030000
 poetry run polymarket-history check --from-block 91000000 --to-block 91030000
+
+poetry run polymarket-history ctf-balance --token-id 123
+poetry run polymarket-history ctf-history --from-block 91000000 --to-block 91030000
+poetry run polymarket-history ctf-check --from-block 91000000 --to-block 91030000
 ```
 
 ## Example

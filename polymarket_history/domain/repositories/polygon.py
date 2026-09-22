@@ -31,3 +31,19 @@ class PolygonRepository(Protocol):
         owner: Address,
         block: BlockRef = LATEST,
     ) -> int: ...
+
+    def erc1155_balance(
+        self,
+        token: Address,
+        owner: Address,
+        token_id: int,
+        block: BlockRef = LATEST,
+    ) -> int: ...
+
+    def erc1155_balance_of_batch(
+        self,
+        token: Address,
+        owner: Address,
+        token_ids: Sequence[int],
+        block: BlockRef = LATEST,
+    ) -> list[int]: ...

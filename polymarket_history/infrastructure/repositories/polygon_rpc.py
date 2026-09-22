@@ -16,6 +16,8 @@ from polymarket_history.infrastructure.helpers.json_rpc import JsonRpcClient
 from polymarket_history.infrastructure.settings import RpcSettings
 
 _ERC20_BALANCE_OF = "0x70a08231"
+_ERC1155_BALANCE_OF = "0x00fdd58e"
+_ERC1155_BALANCE_OF_BATCH = "0x4e1273f4"
 
 
 class PolygonRpcParseError(ValueError):
@@ -81,6 +83,39 @@ class PolygonRpcRepository:
         except ValueError as exc:
             raise PolygonRpcParseError(f"invalid erc20 balance hex: {raw!r}") from exc
 
+    def erc1155_balance(
+        self,
+        token: Address,
+        owner: Address,
+        token_id: int,
+        block: BlockRef = LATEST,
+    ) -> int:
+        raw = self.eth_call(
+            token,
+            encode_erc1155_balance_of(owner, token_id),
+            block=block,
+        )
+        try:
+            return int(raw, 16)
+        except ValueError as exc:
+            raise PolygonRpcParseError(f"invalid erc1155 balance hex: {raw!r}") from exc
+
+    def erc1155_balance_of_batch(
+        self,
+        token: Address,
+        owner: Address,
+        token_ids: Sequence[int],
+        block: BlockRef = LATEST,
+    ) -> list[int]:
+        if not token_ids:
+            return []
+        raw = self.eth_call(
+            token,
+            encode_erc1155_balance_of_batch(owner, token_ids),
+            block=block,
+        )
+        return decode_uint256_array(raw)
+
 
 def block_param(block: BlockRef) -> str:
     if isinstance(block, LatestBlock):
@@ -90,6 +125,44 @@ def block_param(block: BlockRef) -> str:
 
 def encode_erc20_balance_of(owner: Address) -> str:
     return _ERC20_BALANCE_OF + owner.value[2:].zfill(64)
+
+
+def encode_erc1155_balance_of(owner: Address, token_id: int) -> str:
+    return _ERC1155_BALANCE_OF + owner.value[2:].zfill(64) + format(token_id, "064x")
+
+
+def encode_erc1155_balance_of_batch(owner: Address, token_ids: Sequence[int]) -> str:
+    n = len(token_ids)
+    accounts_offset = 64
+    ids_offset = 64 + 32 + 32 * n
+    owner_word = owner.value[2:].zfill(64)
+    body = (
+        format(accounts_offset, "064x")
+        + format(ids_offset, "064x")
+        + format(n, "064x")
+        + owner_word * n
+        + format(n, "064x")
+        + "".join(format(token_id, "064x") for token_id in token_ids)
+    )
+    return _ERC1155_BALANCE_OF_BATCH + body
+
+
+def decode_uint256_array(raw: str) -> list[int]:
+    if not raw.startswith("0x"):
+        raise PolygonRpcParseError(f"expected 0x-prefixed hex, got {raw!r}")
+    payload = raw[2:]
+    if len(payload) < 128:
+        raise PolygonRpcParseError(f"uint256[] result too short: {raw!r}")
+    try:
+        offset = int(payload[0:64], 16) * 2
+        length = int(payload[offset : offset + 64], 16)
+        start = offset + 64
+        end = start + length * 64
+        if end > len(payload):
+            raise PolygonRpcParseError(f"uint256[] extends past data: {raw!r}")
+        return [int(payload[i : i + 64], 16) for i in range(start, end, 64)]
+    except ValueError as exc:
+        raise PolygonRpcParseError(f"invalid uint256[] hex: {raw!r}") from exc
 
 
 def _logs_filter(

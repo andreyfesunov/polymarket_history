@@ -6,10 +6,10 @@ from polymarket_history.domain.value_objects.address import Address
 from polymarket_history.domain.value_objects.block import BlockNumber
 from polymarket_history.domain.value_objects.token import Token
 from polymarket_history.infrastructure.helpers.erc20_transfer_codec import (
-    address_to_topic,
     decode_erc20_transfer,
     erc20_transfer_topic,
 )
+from polymarket_history.infrastructure.helpers.topic_codec import address_to_topic
 
 
 class Erc20TransferRpcRepository:

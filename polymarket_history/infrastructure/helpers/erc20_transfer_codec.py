@@ -5,9 +5,9 @@ from functools import lru_cache
 from Crypto.Hash import keccak
 from polymarket_history.domain.models.erc20_transfer import Erc20Transfer
 from polymarket_history.domain.models.log import Log
-from polymarket_history.domain.value_objects.address import Address
 from polymarket_history.domain.value_objects.token import Token
 from polymarket_history.domain.value_objects.topic import Topic
+from polymarket_history.infrastructure.helpers.topic_codec import topic_to_address
 
 _ERC20_TRANSFER_SIGNATURE = "Transfer(address,address,uint256)"
 
@@ -21,14 +21,6 @@ def erc20_transfer_topic() -> Topic:
     digest = keccak.new(digest_bits=256)
     digest.update(_ERC20_TRANSFER_SIGNATURE.encode("ascii"))
     return Topic("0x" + digest.hexdigest())
-
-
-def address_to_topic(address: Address) -> Topic:
-    return Topic("0x" + address.value[2:].zfill(64))
-
-
-def topic_to_address(topic: Topic) -> Address:
-    return Address("0x" + topic.value[-40:])
 
 
 def decode_erc20_transfer(token: Token, log: Log) -> Erc20Transfer:

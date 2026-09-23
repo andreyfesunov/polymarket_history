@@ -1,5 +1,7 @@
 [rpc]
 url = "https://gateway.tenderly.co/public/polygon"
+rate_limit = 20
+rate_limit_period = 1.0
 
 [wallet]
 address = "0x46b353667fd7d846af3bbeda6584b0e5b883d3de"

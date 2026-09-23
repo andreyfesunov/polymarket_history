@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from polymarket_history.domain.models.erc1155_transfer import Erc1155Transfer
+from polymarket_history.domain.models.log import Log
 from polymarket_history.domain.repositories.polygon import PolygonRepository
 from polymarket_history.domain.value_objects.address import Address
 from polymarket_history.domain.value_objects.block import BlockNumber
@@ -53,18 +54,17 @@ class Erc1155TransferRpcRepository:
                 [batch_topic, None, wallet_topic, None],
                 [batch_topic, None, None, wallet_topic],
             )
-            logs = []
+            seen_logs: dict[tuple[str, int], Log] = {}
             for topics in queries:
-                logs.extend(
-                    self._polygon.get_logs(
-                        address=token,
-                        topics=topics,
-                        from_block=chunk_from,
-                        to_block=chunk_to,
-                    )
-                )
+                for log in self._polygon.get_logs(
+                    address=token,
+                    topics=topics,
+                    from_block=chunk_from,
+                    to_block=chunk_to,
+                ):
+                    seen_logs[(log.transaction_hash, log.log_index)] = log
 
-            for log in logs:
+            for log in seen_logs.values():
                 for transfer in decode_erc1155_transfer(token_id, log):
                     key = (
                         transfer.transaction_hash,

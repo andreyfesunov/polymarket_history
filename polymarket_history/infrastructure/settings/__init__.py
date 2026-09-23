@@ -19,6 +19,8 @@ class RpcSettings:
     timeout: float = 30.0
     max_retries: int = 5
     retry_backoff: float = 1.5
+    rate_limit: int = 20
+    rate_limit_period: float = 1.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,6 +62,8 @@ class Settings:
                 timeout=float(rpc.get("timeout", 30.0)),
                 max_retries=int(rpc.get("max_retries", 5)),
                 retry_backoff=float(rpc.get("retry_backoff", 1.5)),
+                rate_limit=int(rpc.get("rate_limit", 20)),
+                rate_limit_period=float(rpc.get("rate_limit_period", 1.0)),
             ),
             wallet=WalletSettings(address=wallet["address"]),
             contracts=ContractSettings(

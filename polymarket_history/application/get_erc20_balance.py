@@ -32,7 +32,7 @@ class GetErc20Balance:
     ) -> Erc20BalanceResult:
         tip = self._repository.get_block_number()
         resolved = tip if isinstance(block, LatestBlock) else block
-        balance = self._repository.erc20_balance(token, owner, block=block)
+        balance = self._repository.erc20_balance(token, owner, block=resolved)
         return Erc20BalanceResult(
             token=Token(token),
             block=resolved,

@@ -18,6 +18,7 @@ from polymarket_history.infrastructure.settings import RpcSettings
 _ERC20_BALANCE_OF = "0x70a08231"
 _ERC1155_BALANCE_OF = "0x00fdd58e"
 _ERC1155_BALANCE_OF_BATCH = "0x4e1273f4"
+_ERC1155_BALANCE_OF_BATCH_CHUNK = 500
 
 
 class PolygonRpcParseError(ValueError):
@@ -109,12 +110,17 @@ class PolygonRpcRepository:
     ) -> list[int]:
         if not token_ids:
             return []
-        raw = self.eth_call(
-            token,
-            encode_erc1155_balance_of_batch(owner, token_ids),
-            block=block,
-        )
-        return decode_uint256_array(raw)
+        balances: list[int] = []
+        chunk = _ERC1155_BALANCE_OF_BATCH_CHUNK
+        for start in range(0, len(token_ids), chunk):
+            ids_chunk = token_ids[start : start + chunk]
+            raw = self.eth_call(
+                token,
+                encode_erc1155_balance_of_batch(owner, ids_chunk),
+                block=block,
+            )
+            balances.extend(decode_uint256_array(raw))
+        return balances
 
 
 def block_param(block: BlockRef) -> str:

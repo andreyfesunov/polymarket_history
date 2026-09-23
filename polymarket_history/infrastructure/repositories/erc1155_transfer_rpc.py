@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 from polymarket_history.domain.models.erc1155_transfer import Erc1155Transfer
 from polymarket_history.domain.repositories.polygon import PolygonRepository
 from polymarket_history.domain.value_objects.address import Address
@@ -34,8 +36,6 @@ class Erc1155TransferRpcRepository:
 
         token_id = Token(token)
         wallet_topic = address_to_topic(wallet)
-        # Batch expands into multiple transfers sharing (tx, log_index); key by
-        # (tx, log_index, token_id) so each position line is unique.
         transfers: dict[tuple[str, int, int], Erc1155Transfer] = {}
 
         single_topic = erc1155_transfer_single_topic()
@@ -71,7 +71,14 @@ class Erc1155TransferRpcRepository:
                         transfer.log_index,
                         transfer.token_id,
                     )
-                    transfers[key] = transfer
+                    existing = transfers.get(key)
+                    if existing is None:
+                        transfers[key] = transfer
+                    else:
+                        transfers[key] = replace(
+                            existing,
+                            amount=existing.amount + transfer.amount,
+                        )
 
             start = end + 1
 

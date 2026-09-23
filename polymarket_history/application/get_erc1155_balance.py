@@ -38,7 +38,7 @@ class GetErc1155Balance:
             token,
             owner,
             token_id,
-            block=block,
+            block=resolved,
         )
         return Erc1155BalanceResult(
             token=Token(token),

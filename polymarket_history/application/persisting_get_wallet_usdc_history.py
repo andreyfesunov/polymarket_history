@@ -36,3 +36,4 @@ class PersistingGetWalletUsdcHistory:
             self._store.save_erc20(transfers)
         except Exception as exc:
             print(f"failed to persist erc20 transfers: {exc}", file=sys.stderr)
+            raise

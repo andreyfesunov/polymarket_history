@@ -28,11 +28,9 @@ def build_transfer_store(dsn: str) -> TransferStore:
         ):
             cur.execute("SELECT 1")
     except psycopg.Error as exc:
-        print(
+        raise RuntimeError(
             f"database unavailable ({exc}); "
-            "transfers will not be saved to the database",
-            file=sys.stderr,
-        )
-        return NullTransferStore()
+            "refusing to start with a configured DSN"
+        ) from exc
 
     return PostgresTransferStore(cleaned)

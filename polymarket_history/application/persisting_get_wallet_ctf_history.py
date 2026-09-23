@@ -36,3 +36,4 @@ class PersistingGetWalletCtfHistory:
             self._store.save_erc1155(transfers)
         except Exception as exc:
             print(f"failed to persist erc1155 transfers: {exc}", file=sys.stderr)
+            raise

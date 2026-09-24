@@ -79,10 +79,7 @@ class PolygonRpcRepository:
         block: BlockRef = LATEST,
     ) -> int:
         raw = self.eth_call(token, encode_erc20_balance_of(owner), block=block)
-        try:
-            return int(raw, 16)
-        except ValueError as exc:
-            raise PolygonRpcParseError(f"invalid erc20 balance hex: {raw!r}") from exc
+        return parse_uint256_hex(raw, label="erc20 balance")
 
     def erc1155_balance(
         self,
@@ -96,10 +93,7 @@ class PolygonRpcRepository:
             encode_erc1155_balance_of(owner, token_id),
             block=block,
         )
-        try:
-            return int(raw, 16)
-        except ValueError as exc:
-            raise PolygonRpcParseError(f"invalid erc1155 balance hex: {raw!r}") from exc
+        return parse_uint256_hex(raw, label="erc1155 balance")
 
     def erc1155_balance_of_batch(
         self,
@@ -151,6 +145,15 @@ def encode_erc1155_balance_of_batch(owner: Address, token_ids: Sequence[int]) ->
         + "".join(format(token_id, "064x") for token_id in token_ids)
     )
     return _ERC1155_BALANCE_OF_BATCH + body
+
+
+def parse_uint256_hex(raw: str, *, label: str) -> int:
+    if raw in ("0x", "0X"):
+        return 0
+    try:
+        return int(raw, 16)
+    except ValueError as exc:
+        raise PolygonRpcParseError(f"invalid {label} hex: {raw!r}") from exc
 
 
 def decode_uint256_array(raw: str) -> list[int]:
